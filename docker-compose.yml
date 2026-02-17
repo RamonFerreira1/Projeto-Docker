@@ -1,0 +1,34 @@
+version: '3.8'
+services:
+  db:
+    image: mysql:5.7
+    environment:
+      - MYSQL_ROOT_PASSWORD=Senha123
+      - MYSQL_DATABASE=meubanco
+    networks:
+      - toshiro-net
+    volumes:
+      - ./banco.sql:/docker-entrypoint-initdb.d/banco.sql
+
+  php-app:
+    image: php:7.4-apache
+    volumes:
+      - ./index.php:/var/www/html/index.php
+    networks:
+      - toshiro-net
+    depends_on:
+      - db
+    command: bash -c "docker-php-ext-install mysqli && apache2-foreground"
+
+  nginx-proxy:
+    build: .
+    ports:
+      - "4500:4500"
+    networks:
+      - toshiro-net
+    depends_on:
+      - php-app
+
+networks:
+  toshiro-net:
+    driver: bridge
